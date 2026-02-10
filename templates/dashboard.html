@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<h2>Smart Classroom Attendance</h2>
+
+<table>
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Status</th>
+</tr>
+
+{% for row in records %}
+<tr>
+    <td>{{row[0]}}</td>
+    <td>{{row[1]}}</td>
+    <td>{{row[2]}}</td>
+    <td>{{row[3]}}</td>
+    <td>{{row[4]}}</td>
+</tr>
+{% endfor %}
+</table>
+</body>
+</html>
