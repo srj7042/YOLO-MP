@@ -1,0 +1,16 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Database & model files
+attendance.db
+encodings/*.pkl
+yolov8n.pt
+
+# Dataset
+dataset/
+
+# macOS
+.DS_Store
+

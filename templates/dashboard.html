@@ -5,26 +5,27 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<h2>Smart Classroom Attendance</h2>
+    <h1>Smart Classroom Attendance</h1>
 
-<table>
-<tr>
-    <th>ID</th>
-    <th>Name</th>
-    <th>Date</th>
-    <th>Time</th>
-    <th>Status</th>
-</tr>
+    <a href="/start">
+        <button>Start Attendance</button>
+    </a>
 
-{% for row in records %}
-<tr>
-    <td>{{row[0]}}</td>
-    <td>{{row[1]}}</td>
-    <td>{{row[2]}}</td>
-    <td>{{row[3]}}</td>
-    <td>{{row[4]}}</td>
-</tr>
-{% endfor %}
-</table>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Time</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>
