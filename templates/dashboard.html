@@ -2,30 +2,33 @@
 <html>
 <head>
     <title>Attendance Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Smart Classroom Attendance</h1>
+    <h2>Attendance Records</h2>
 
-    <a href="/start">
-        <button>Start Attendance</button>
-    </a>
-
-    <table>
+    <table border="1">
         <tr>
-            <th>ID</th>
             <th>Name</th>
+            <th>Roll No</th>
+            <th>Class</th>
             <th>Date</th>
             <th>Time</th>
+            <th>Status</th>
         </tr>
-        {% for row in data %}
+
+        {% for row in records %}
         <tr>
             <td>{{ row[0] }}</td>
             <td>{{ row[1] }}</td>
             <td>{{ row[2] }}</td>
             <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+            <td>{{ row[5] }}</td>
         </tr>
         {% endfor %}
     </table>
+
+    <br>
+    <a href="/">Upload Another Image</a>
 </body>
 </html>
