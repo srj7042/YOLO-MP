@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Attendance Dashboard</title>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-    <h2>Attendance Records</h2>
+<body class="bg-gradient">
 
-    <table border="1">
+<div class="navbar">
+    <h2>Admin Dashboard</h2>
+    <a href="/">Logout</a>
+</div>
+
+<div class="glass-card table-card">
+    <h3>Attendance Records</h3>
+
+    <table>
         <tr>
             <th>Name</th>
             <th>Roll No</th>
@@ -16,19 +24,18 @@
             <th>Status</th>
         </tr>
 
-        {% for row in records %}
+        {% for r in records %}
         <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td>{{ row[3] }}</td>
-            <td>{{ row[4] }}</td>
-            <td>{{ row[5] }}</td>
+            <td>{{ r[0] }}</td>
+            <td>{{ r[1] }}</td>
+            <td>{{ r[2] }}</td>
+            <td>{{ r[3] }}</td>
+            <td>{{ r[4] }}</td>
+            <td class="present">{{ r[5] }}</td>
         </tr>
         {% endfor %}
     </table>
+</div>
 
-    <br>
-    <a href="/">Upload Another Image</a>
 </body>
 </html>

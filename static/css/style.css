@@ -1,0 +1,89 @@
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.bg-gradient {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    height: 100vh;
+}
+
+.center-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.glass-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    color: white;
+}
+
+.upload-card {
+    width: 400px;
+    margin: 80px auto;
+    text-align: center;
+}
+
+.table-card {
+    width: 90%;
+    margin: 50px auto;
+    overflow-x: auto;
+}
+
+.input {
+    width: 100%;
+    padding: 12px;
+    margin: 20px 0;
+    border-radius: 10px;
+    border: none;
+}
+
+.input-file {
+    margin: 20px 0;
+}
+
+.btn {
+    padding: 12px 25px;
+    border-radius: 10px;
+    border: none;
+    background: #00c6ff;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #0072ff;
+    transform: scale(1.05);
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 40px;
+    background: rgba(0,0,0,0.3);
+    color: white;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    color: white;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.present {
+    color: #00ffae;
+    font-weight: bold;
+}

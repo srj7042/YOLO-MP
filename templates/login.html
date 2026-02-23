@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YOLO Attendance - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gradient">
+
+<div class="glass-card center-card">
+    <h1>YOLO Attendance System</h1>
+    <p>Select Your Role</p>
+
+    <form method="POST">
+        <select name="role" class="input">
+            <option value="admin">Admin</option>
+            <option value="teacher">Teacher</option>
+        </select>
+        <button class="btn">Enter</button>
+    </form>
+</div>
+
+</body>
+</html>

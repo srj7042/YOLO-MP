@@ -18,6 +18,7 @@ def create_tables():
     conn = connect_db()
     cursor = conn.cursor()
 
+    # STUDENTS TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,12 +26,15 @@ def create_tables():
     )
     """)
 
+    # ATTENDANCE TABLE (UPDATED)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS attendance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_name TEXT NOT NULL,
+        class_name TEXT NOT NULL,
         date TEXT NOT NULL,
-        time TEXT NOT NULL
+        time TEXT NOT NULL,
+        UNIQUE(student_name, class_name, date)
     )
     """)
 
@@ -49,8 +53,9 @@ def add_student(name):
     try:
         cursor.execute("INSERT INTO students (name) VALUES (?)", (name,))
         conn.commit()
+        print(f"✅ Student added: {name}")
     except sqlite3.IntegrityError:
-        pass  # student already exists
+        print(f"⚠️ Student already exists: {name}")
 
     conn.close()
 
@@ -58,46 +63,67 @@ def add_student(name):
 # =========================
 # MARK ATTENDANCE
 # =========================
-def mark_attendance(student_name):
+def mark_attendance(student_name, class_name):
     conn = connect_db()
     cursor = conn.cursor()
 
     date = datetime.now().strftime("%Y-%m-%d")
     time = datetime.now().strftime("%H:%M:%S")
 
-    # prevent duplicate entry on same day
-    cursor.execute("""
-    SELECT * FROM attendance 
-    WHERE student_name = ? AND date = ?
-    """, (student_name, date))
-
-    if cursor.fetchone() is None:
+    try:
         cursor.execute("""
-        INSERT INTO attendance (student_name, date, time)
-        VALUES (?, ?, ?)
-        """, (student_name, date, time))
+        INSERT INTO attendance (student_name, class_name, date, time)
+        VALUES (?, ?, ?, ?)
+        """, (student_name, class_name, date, time))
+
         conn.commit()
-        print(f"🟢 Attendance marked: {student_name}")
+        print(f"🟢 Attendance marked: {student_name} ({class_name})")
+
+    except sqlite3.IntegrityError:
+        print(f"⚠️ Already marked today: {student_name} ({class_name})")
 
     conn.close()
 
 
 # =========================
-# FETCH ATTENDANCE
+# FETCH ALL ATTENDANCE
 # =========================
 def get_attendance():
     conn = connect_db()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM attendance")
-    records = cursor.fetchall()
+    cursor.execute("""
+    SELECT student_name, class_name, date, time 
+    FROM attendance
+    ORDER BY date DESC, class_name
+    """)
 
+    records = cursor.fetchall()
     conn.close()
     return records
 
 
 # =========================
-# MAIN (RUN ONCE)
+# FETCH CLASS-WISE
+# =========================
+def get_class_attendance(class_name):
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT student_name, date, time 
+    FROM attendance
+    WHERE class_name = ?
+    ORDER BY date DESC
+    """, (class_name,))
+
+    records = cursor.fetchall()
+    conn.close()
+    return records
+
+
+# =========================
+# RUN ONCE TO CREATE TABLES
 # =========================
 if __name__ == "__main__":
     create_tables()
