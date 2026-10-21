@@ -1,87 +1,56 @@
 import os
 import cv2
-import pickle
-import numpy as np
-import torch
-from ultralytics import YOLO
-from facenet_pytorch import InceptionResnetV1
-from PIL import Image
+import database
+import face_engine
 
-# =========================
-# PATHS
-# =========================
-DATASET_DIR = "dataset"        # dataset/Suraj/img1.jpg
-ENCODINGS_DIR = "encodings"
-ENCODINGS_FILE = os.path.join(ENCODINGS_DIR, "faces.pkl")
+DATASET_DIR = "dataset"
+os.makedirs(DATASET_DIR, exist_ok=True)
+os.makedirs(face_engine.ENCODINGS_DIR, exist_ok=True)
 
-os.makedirs(ENCODINGS_DIR, exist_ok=True)
+print("[INFO] Checking dataset directory...")
+people = [p for p in os.listdir(DATASET_DIR) if os.path.isdir(os.path.join(DATASET_DIR, p))]
 
-# =========================
-# LOAD MODELS
-# =========================
-print("[INFO] Loading YOLO face detector...")
-yolo = YOLO("yolov8n.pt")  # lightweight YOLO
+if not people:
+    print(f"⚠️ No person folders found in '{DATASET_DIR}/'.")
+    print(f"👉 Example structure: {DATASET_DIR}/Suraj_Jaiswal/photo1.jpg")
+    print("👉 You can also register students and their photos directly via the Web UI at /students!")
+    exit(0)
 
-print("[INFO] Loading FaceNet model...")
-facenet = InceptionResnetV1(pretrained="vggface2").eval()
+database.init_db()
+embeddings_data, _, _ = face_engine.load_known_faces()
+total_images = 0
 
-# =========================
-# TRAINING
-# =========================
-embeddings = {}
-
-print("[INFO] Starting face encoding...")
-
-for person in os.listdir(DATASET_DIR):
+for person in people:
     person_path = os.path.join(DATASET_DIR, person)
+    clean_name = person.replace("_", " ").strip()
+    print(f"\n[INFO] Processing faces for: {clean_name}")
 
-    # Ignore files like .DS_Store
-    if not os.path.isdir(person_path):
-        continue
-
-    print(f"[INFO] Processing {person}")
-    embeddings[person] = []
+    if clean_name not in embeddings_data:
+        embeddings_data[clean_name] = []
 
     for img_name in os.listdir(person_path):
-        if not img_name.lower().endswith((".jpg", ".jpeg", ".png")):
+        if not img_name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
             continue
 
         img_path = os.path.join(person_path, img_name)
-        image = cv2.imread(img_path)
-
-        if image is None:
+        img = cv2.imread(img_path)
+        if img is None:
             continue
 
-        # YOLO face detection
-        results = yolo(image, conf=0.5, verbose=False)
-
-        if len(results[0].boxes) == 0:
-            print(f"⚠ No face detected in {img_name}")
+        faces = face_engine.detect_faces(img)
+        if len(faces) == 0:
+            print(f"  ⚠️ No face found in {img_name}")
             continue
 
-        # Take first detected face
-        box = results[0].boxes.xyxy[0].cpu().numpy().astype(int)
-        x1, y1, x2, y2 = box
+        largest_face = max(faces, key=lambda b: b[2] * b[3])
+        x, y, w, h = largest_face
+        face_crop = img[y:y+h, x:x+w]
 
-        face = image[y1:y2, x1:x2]
-        if face.size == 0:
-            continue
+        emb = face_engine.extract_face_embedding(face_crop)
+        if emb is not None:
+            embeddings_data[clean_name].append(emb)
+            total_images += 1
+            print(f"  ✅ Encoded {img_name}")
 
-        # Preprocess for FaceNet
-        face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
-        face = cv2.resize(face, (160, 160))
-        face = torch.tensor(face).permute(2, 0, 1).unsqueeze(0).float()
-        face = face / 255.0
-
-        # Generate embedding
-        with torch.no_grad():
-            embedding = facenet(face).numpy()[0]
-
-        embeddings[person].append(embedding)
-
-print("[INFO] Saving embeddings...")
-
-with open(ENCODINGS_FILE, "wb") as f:
-    pickle.dump(embeddings, f)
-
-print("✅ Training complete. Face embeddings saved to encodings/faces.pkl")
+face_engine.save_known_faces(embeddings_data)
+print(f"\n🎉 Training complete! {total_images} face embeddings saved to {face_engine.ENCODINGS_FILE}")

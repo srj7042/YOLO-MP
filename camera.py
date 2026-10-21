@@ -1,94 +1,53 @@
 import cv2
-import pickle
-import numpy as np
-import torch
-from ultralytics import YOLO
-from facenet_pytorch import InceptionResnetV1
-from database import mark_attendance
+import database
+import face_engine
 
-# =========================
-# LOAD MODELS
-# =========================
-print("[INFO] Loading YOLO model...")
-yolo = YOLO("yolov8n.pt")
+print("[INFO] Starting standalone camera attendance module...")
+database.init_db()
 
-print("[INFO] Loading FaceNet model...")
-facenet = InceptionResnetV1(pretrained="vggface2").eval()
-
-# =========================
-# LOAD FACE EMBEDDINGS
-# =========================
-print("[INFO] Loading face encodings...")
-with open("encodings/faces.pkl", "rb") as f:
-    known_embeddings = pickle.load(f)
-
-# Flatten embeddings
-known_names = []
-known_vectors = []
-
-for name, embeds in known_embeddings.items():
-    for emb in embeds:
-        known_names.append(name)
-        known_vectors.append(emb)
-
-known_vectors = np.array(known_vectors)
-
-# =========================
-# CAMERA START
-# =========================
 cap = cv2.VideoCapture(0)
-print("🎥 Camera started. Press Q to quit.")
+if not cap.isOpened():
+    print("❌ Error: Could not open webcam.")
+    exit(1)
 
-THRESHOLD = 0.9  # lower = stricter matching
+print("🎥 Camera started. Press 'q' to quit.")
 
 while True:
     ret, frame = cap.read()
     if not ret:
+        print("❌ Failed to grab frame.")
         break
 
-    results = yolo(frame, conf=0.5, verbose=False)
+    faces = face_engine.detect_faces(frame)
 
-    for box in results[0].boxes.xyxy:
-        x1, y1, x2, y2 = map(int, box)
-
-        face = frame[y1:y2, x1:x2]
-        if face.size == 0:
+    for (x, y, w, h) in faces:
+        face_crop = frame[y:y+h, x:x+w]
+        if face_crop.size == 0:
             continue
 
-        # Preprocess face
-        face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
-        face = cv2.resize(face, (160, 160))
-        face = torch.tensor(face).permute(2, 0, 1).unsqueeze(0).float()
-        face = face / 255.0
+        name, confidence, dist = face_engine.match_face(face_crop)
 
-        with torch.no_grad():
-            emb = facenet(face).numpy()
-
-        # Compare with known embeddings
-        distances = np.linalg.norm(known_vectors - emb, axis=1)
-        min_dist = np.min(distances)
-        best_match = known_names[np.argmin(distances)]
-
-        if min_dist < THRESHOLD:
-            name = best_match
+        if name != "Unknown":
             color = (0, 255, 0)
-            mark_attendance(name)
+            student = database.get_student_by_name(name)
+            if student:
+                success, msg = database.mark_attendance(student["id"])
+                label = f"{name} ({confidence}%)"
+            else:
+                label = f"{name}"
         else:
-            name = "Unknown"
             color = (0, 0, 255)
+            label = "Unknown"
 
-        # Draw box + label
-        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-        cv2.putText(frame, f"{name}",
-                    (x1, y1 - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.9, color, 2)
+        cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
+        cv2.putText(frame, label, (x, max(20, y - 10)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
-    cv2.imshow("YOLO Face Attendance System", frame)
+    cv2.imshow("YOLO-MP Face Attendance (Press Q to quit)", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
 cv2.destroyAllWindows()
-print("🛑 Camera closed")
+print("🛑 Camera closed.")

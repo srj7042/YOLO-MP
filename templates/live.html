@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Camera Attendance • YOLO-MP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="nav-brand">
+        <span class="nav-logo-icon">🎯</span>
+        <div>
+            <h2>YOLO-MP</h2>
+            <span class="nav-role-badge">Live Recognition</span>
+        </div>
+    </div>
+    <nav class="nav-links">
+        <a href="/dashboard" class="nav-item">📊 Dashboard</a>
+        <a href="/live" class="nav-item active">🎥 Live Stream</a>
+        <a href="/upload" class="nav-item">📷 Upload Class Photo</a>
+        <a href="/logout" class="nav-item nav-logout">Logout</a>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="stream-layout">
+        <div class="stream-card">
+            <div class="stream-header">
+                <div>
+                    <span class="live-dot"></span> <strong>REAL-TIME FACE ATTENDANCE STREAM</strong>
+                </div>
+                <span class="stream-badge">AI Active</span>
+            </div>
+            
+            <div class="video-wrapper">
+                <img src="/video_feed" alt="Live Camera Stream" class="stream-video" onerror="this.onerror=null; this.src=''; document.getElementById('camera-error').style.display='block';">
+                <div id="camera-error" class="camera-fallback" style="display:none;">
+                    <div class="empty-icon">📷</div>
+                    <h3>Webcam Inactive or Busy</h3>
+                    <p>Ensure your camera is connected and permitted in browser settings.</p>
+                    <a href="/live" class="btn btn-primary">Retry Camera</a>
+                </div>
+            </div>
+
+            <div class="stream-footer">
+                <p>💡 <em>Tip: Identified faces are matched against database records and marked automatically for today.</em></p>
+                <div class="stream-buttons">
+                    <a href="/dashboard" class="btn btn-secondary">Check Attendance Table &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-sidebar">
+            <div class="sidebar-card">
+                <h3>System Instructions</h3>
+                <ul class="steps-list">
+                    <li>Stand 1.5 - 3 feet away from webcam.</li>
+                    <li>Ensure adequate front lighting.</li>
+                    <li>Faces detected will show green bounding boxes.</li>
+                    <li>Unregistered faces will appear in red as <code>Unknown</code>.</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-card">
+                <h3>Quick Actions</h3>
+                <a href="/upload" class="btn btn-block btn-secondary">Upload Group Photo Instead</a>
+                {% if session.get('role') == 'admin' %}
+                <a href="/students" class="btn btn-block btn-primary">Enroll New Student Face</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

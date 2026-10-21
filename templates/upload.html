@@ -1,17 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Upload Image</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Class Photo • YOLO-MP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h2>Upload Class Image</h2>
 
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">Upload & Detect</button>
-    </form>
+<header class="navbar">
+    <div class="nav-brand">
+        <span class="nav-logo-icon">🎯</span>
+        <div>
+            <h2>YOLO-MP</h2>
+            <span class="nav-role-badge">Group Recognition</span>
+        </div>
+    </div>
+    <nav class="nav-links">
+        <a href="/dashboard" class="nav-item">📊 Dashboard</a>
+        <a href="/live" class="nav-item">🎥 Live Stream</a>
+        <a href="/upload" class="nav-item active">📷 Upload Class Photo</a>
+        <a href="/logout" class="nav-item nav-logout">Logout</a>
+    </nav>
+</header>
 
-    <br>
-    <a href="/dashboard">Back to Dashboard</a>
+<main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="upload-section">
+        <div class="upload-form-card">
+            <h2>Process Classroom Group Photo</h2>
+            <p>Upload a group photograph to automatically detect, recognize, and mark attendance for all visible students.</p>
+
+            <form action="/upload" method="POST" enctype="multipart/form-data" class="file-drop-form">
+                <div class="file-drop-area">
+                    <span class="drop-icon">📸</span>
+                    <label for="file" class="file-label">Choose an image or drop it here</label>
+                    <input type="file" name="file" id="file" class="file-input" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Scan Faces & Mark Attendance</button>
+            </form>
+        </div>
+
+        {% if uploaded %}
+        <div class="results-container">
+            <h3>Detection & Recognition Results</h3>
+
+            <div class="image-preview-grid">
+                <div class="preview-box">
+                    <h4>Annotated AI Output</h4>
+                    <img src="{{ annotated_image }}" alt="Annotated Detections" class="annotated-preview-img">
+                </div>
+            </div>
+
+            <div class="table-container mt-4">
+                <h4>Detected Individuals</h4>
+                {% if detections %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Individual</th>
+                            <th>Confidence</th>
+                            <th>Distance</th>
+                            <th>Attendance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in detections %}
+                        <tr>
+                            <td><strong>{{ d.name }}</strong></td>
+                            <td>{{ d.confidence }}%</td>
+                            <td><code>{{ d.distance }}</code></td>
+                            <td>
+                                {% if d.status == 'Marked' %}
+                                <span class="badge badge-present">✅ Marked Present</span>
+                                {% elif d.status == 'Already Marked' %}
+                                <span class="badge badge-class">⚠️ Already Logged Today</span>
+                                {% else %}
+                                <span class="badge badge-unknown">❌ Unknown Face</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <p>No faces were detected in the uploaded image. Please ensure faces are clear and well-lit.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-4">
+                <a href="/dashboard" class="btn btn-secondary">&larr; Return to Dashboard</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</main>
+
 </body>
 </html>
